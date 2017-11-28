@@ -12,7 +12,9 @@ Authors: Andrius Kelly, Sandhya Raman, Kevin Woods
 #include <cmath>
 #include <climits>
 
+
 using namespace std;
+
 
 struct Location {
 	int id;
@@ -20,7 +22,10 @@ struct Location {
 	int y;
 };
 
+
 int calcDistance(Location c1, Location c2);
+map<int, list<int> >  getMST( map<int, Location> cities);	
+list<int> getOddVectors( map<int,list<int> > );
 
 int main(int argc, char* argv[]) {
     
@@ -44,72 +49,24 @@ int main(int argc, char* argv[]) {
 			cities[city.id] = city;
 		}
 
-		//duplicate map to create tree (need to remove elements)
-		map<int, Location> temp_cities = cities;
-		map<int, Location>::iterator temp_itr;
-
-		//create min spanning tree using Primm's algorithm
+		//get min spanning tree
 		map<int, list<int> > MST;
-		map<int, list<int> >::iterator mst_itr;
-		
-		list<int>::iterator list_itr;
+		MST = getMST( cities );
 
-		//MST "root node" will be stored in MST[-1], which should be unused city identifier
-		temp_itr = temp_cities.begin();
-		MST[-1].push_back( temp_itr->second.id );
-
-		temp_cities.erase(temp_itr); //remove root node from temp
-
-		//vars to keep track of shortest distance between MST and temp_cities
-		int distance;
-		int parentId, childId;
-
-		//loop cities - 1 times
-		for( int i=1; i < cities.size(); i++){
-			
-			distance = INT_MAX;
-
-			//now get the next shortest distance between MST and temp_cities...
-			//iterate through the map of lists
-			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {
-	
-				//iterate through each list
-				for( list_itr = mst_itr->second.begin();  list_itr != mst_itr->second.end();  list_itr++) {
-					
-					city = cities[ *list_itr ];
-
-					//check against each city in temp_cities
-					for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++) {
-					
-						if ( calcDistance( city, cities[ temp_itr->second.id ] ) < distance ) {
-							distance = calcDistance( city, cities[ temp_itr->second.id ] );
-							parentId = *list_itr;
-							childId = temp_itr->second.id;
-						}
-					}
-				}
-			}
-			//add edge to MST (ie add child node to parent list)
-			MST[parentId].push_back( childId );
-			
-			temp_cities.erase(childId);
-		}
-
-
-		//test MST size and temp size
-		int mstsize = 0;
-		for( mst_itr = MST.begin(); mst_itr != MST.end(); mst_itr++) {
-			mstsize += mst_itr->second.size();
-		}
-		cout << "MST size: " << mstsize << endl;
-		cout << "temp_cities: " << temp_cities.size() << endl;
+		list<int> oddVectors = getOddVectors(MST);
 
 	}
+
 	return 0;
 }
 
 
-//returns the integer distance of two cities 
+
+//----------------------------------------- FUNCTIONS ----------------------------------------------------
+
+/*			calcDistance(Location c1, Location c2)
+	Returns the integer distance of two cities 
+*/
 int calcDistance(Location c1, Location c2) {
 	long dx, dy;
 
@@ -119,4 +76,114 @@ int calcDistance(Location c1, Location c2) {
 	dy *= dy;
 
 	return static_cast<int>( sqrt( dx + dy ) );
+}
+
+
+
+/*     			 getMST( map<int, Location> )
+	Returns a MST of the connected graph using Prim's algorithm
+	The MST is an adjacency list of location ids that store the list of child nodes of each city.
+*/
+map<int, list<int> >  getMST( map<int, Location> cities) {	
+		
+		map<int, list<int> > MST;
+		
+		//temp variable
+		Location city;
+
+		//duplicate map to create tree (need to remove elements)
+		map<int, Location> temp_cities = cities;
+		map<int, Location>::iterator temp_itr;
+
+		map<int, list<int> >::iterator mst_itr;
+		
+		list<int>::iterator list_itr;
+
+		//vars to keep track of shortest distance between MST and temp_cities
+		int distance;
+		int edge;
+		int id1, id2;
+
+	//add first relationship to MST
+		//get first city and remove from temp cities
+		temp_itr = temp_cities.begin();
+		city = temp_itr->second;
+		id1 = city.id;
+		temp_cities.erase( id1 );
+
+		distance = INT_MAX;
+		
+		//find city closest to city1 to initialize MST
+		for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++){				
+			edge = calcDistance( city, cities[ temp_itr->second.id ] );
+			if ( edge < distance ) {
+				distance = edge;
+				id2 = temp_itr->second.id;
+			}
+		}	
+		MST[id1].push_back(id2);
+		MST[id2].push_back(id1);
+
+		temp_cities.erase(id2);
+
+		//add rest of cities
+		for( int i=0; i < cities.size() - 2; i++){
+			
+			distance = INT_MAX;
+
+			//to get the next shortest distance between MST and temp_cities we iterate through the MST using mst_tr and list_itr
+			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {	
+				for( list_itr = mst_itr->second.begin();  list_itr != mst_itr->second.end();  list_itr++) {
+					
+					city = cities[ *list_itr ];
+
+					//check against each city in temp_cities
+					for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++) {
+	
+						edge = calcDistance( city, cities[ temp_itr->second.id ] );
+						if ( edge < distance ) {
+							distance = edge;
+							id1 = *list_itr;
+							id2 = temp_itr->second.id;
+						}
+					}
+				}
+			}
+			MST[id1].push_back(id2);
+			MST[id2].push_back(id1);
+			
+			temp_cities.erase(id2);
+		}
+
+		//test MST size and temp size
+		int mstsize = 0;
+		for( mst_itr = MST.begin(); mst_itr != MST.end(); mst_itr++) {
+			mstsize += mst_itr->second.size();
+		}
+		
+//		cout << "MST vectors: " << MST.size() << "  MST edges: " << mstsize << endl;
+//		cout << "temp_cities: " << temp_cities.size() << endl;
+
+		return MST;
+}
+
+
+/*			getOddVectors( map< int, list<int> > )
+	returns a list of integers representing the vectors with odd number of edges
+*/
+list<int> getOddVectors( map<int,list<int> > MST ){
+
+	list<int> oddList;
+
+	Location city;
+	
+	map<int,list<int> >::iterator itr;
+
+	for( itr = MST.begin(); itr != MST.end(); itr++) {
+		if ( ( itr->second.size() % 2) == 1 ) {
+			oddList.push_back(city.id);
+		}
+	}
+
+	return oddList;
 }
