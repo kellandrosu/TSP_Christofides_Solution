@@ -11,7 +11,7 @@ Authors: Andrius Kelly, Sandhya Raman, Kevin Woods
 #include <map>
 #include <cmath>
 #include <climits>
-
+#include <cstring>
 
 using namespace std;
 
@@ -22,10 +22,12 @@ struct Location {
 	int y;
 };
 
-
+// PROTOTYPES
 int calcDistance(Location c1, Location c2);
 map<int, list<int> >  getMST( map<int, Location> cities);	
 list<int> getOddVectors( map<int,list<int> > );
+void printMST( map<int, list<int> > MST );
+
 
 int main(int argc, char* argv[]) {
     
@@ -55,14 +57,50 @@ int main(int argc, char* argv[]) {
 
 		list<int> oddVectors = getOddVectors(MST);
 
-	}
+		printMST(MST);
 
+		//manually add matching pairs to MST for test.txt
+		if( strcmp(argv[1], "test.txt") == 0 ){
+			//add edge between vectors 6 and 3
+			MST[6].push_back(3);
+			MST[3].push_back(6);
+			//add edge between vectors 2 and 7
+			MST[2].push_back(7);
+			MST[7].push_back(2);
+
+			cout << endl;
+			printMST(MST);
+		}
+
+	}
 	return 0;
 }
 
 
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
+
+/*		printMST(map<int, list<int>>)
+	prints the MST
+*/
+void printMST( map<int, list<int> > MST) {
+		
+		map<int, list<int> >::iterator m_itr;
+		list<int>::iterator l_itr;
+
+		for( m_itr = MST.begin(); m_itr != MST.end(); m_itr++) {
+			cout << m_itr->first << ": ";
+			l_itr = m_itr->second.begin();
+			while( l_itr !=  m_itr->second.end() ){
+				cout << *l_itr << " ";
+				l_itr++;
+			}
+			cout << endl;
+		}
+}
+
+
+
 
 /*			calcDistance(Location c1, Location c2)
 	Returns the integer distance of two cities 
@@ -166,6 +204,8 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 
 		return MST;
 }
+
+
 
 
 /*			getOddVectors( map< int, list<int> > )
