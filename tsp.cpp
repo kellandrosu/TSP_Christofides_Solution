@@ -12,6 +12,7 @@ Authors: Andrius Kelly, Sandhya Raman, Kevin Woods
 #include <cmath>
 #include <climits>
 #include <cstring>
+#include <limits>
 
 using namespace std;
 
@@ -27,6 +28,7 @@ int calcDistance(Location c1, Location c2);
 map<int, list<int> >  getMST( map<int, Location> cities);	
 list<int> getOddVectors( map<int,list<int> > );
 void printMST( map<int, list<int> > MST );
+map<int, int> perfectMatching(list<int>, map<int, Location>);
 
 
 int main(int argc, char* argv[]) {
@@ -55,9 +57,21 @@ int main(int argc, char* argv[]) {
 		map<int, list<int> > MST;
 		MST = getMST( cities );
 
+		//get list of city ID's that have odd edges
 		list<int> oddVectors = getOddVectors(MST);
 
-		printMST(MST);
+		//get a map of city ID's to their perfect match city ID
+		map<int, int> oddMatch = perfectMatching(oddVectors, cities);
+
+		map<int, int>::iterator itr1;
+		
+		for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); ++itr1) {
+			cout << itr1->first << ": " << itr1->second << endl;
+		}
+
+
+
+		// printMST(MST);
 
 		//manually add matching pairs to MST for test.txt
 		if( strcmp(argv[1], "test.txt") == 0 ){
@@ -69,7 +83,7 @@ int main(int argc, char* argv[]) {
 			MST[7].push_back(2);
 
 			cout << endl;
-			printMST(MST);
+			// printMST(MST);
 		}
 
 	}
@@ -79,6 +93,55 @@ int main(int argc, char* argv[]) {
 
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
+
+/*		perfectMatching(list<int>, map<int, Location>)
+	Creates a map of perfect matching pairs where each vertex is matched with its closest neighbor.
+	Only one edge per vertex.
+*/
+map<int, int> perfectMatching(list<int> oddVectors, map<int, Location> cities) {
+	
+	// struct for tracking which city has the shortest distance from the starting position
+	struct DL {
+		int distance;
+		int location;
+		list<int>::iterator cityItr;
+	};
+
+	map<int, int> oddMatch; //cityId, cityID of matching pairs
+	DL dl;
+	int currDistance;
+	list<int>::iterator cityA_Itr, cityB_Itr;
+
+	while (oddVectors.size() != 0) {
+		dl.distance = numeric_limits<int>::max();
+		dl.location = numeric_limits<int>::max();
+		cityA_Itr = oddVectors.begin();
+		cityB_Itr = oddVectors.begin();
+		cityB_Itr++;
+
+		for (; cityB_Itr != oddVectors.end(); ++cityB_Itr) {
+			currDistance = calcDistance(cities[*cityA_Itr], cities[*cityB_Itr]);
+
+			// cout << *cityA_Itr << " to " << *cityB_Itr << ": " << currDistance << endl;
+
+			if (currDistance < dl.distance) {
+				dl.distance = currDistance;
+				dl.location = *cityB_Itr;
+				dl.cityItr = cityB_Itr;
+			}
+		}
+
+		oddMatch[*cityA_Itr] = dl.location;
+		oddMatch[dl.location] = *cityA_Itr;
+
+		oddVectors.erase(cityA_Itr);
+		oddVectors.erase(dl.cityItr);
+	}
+
+	return oddMatch;
+}
+
+
 
 /*		printMST(map<int, list<int>>)
 	prints the MST
@@ -215,13 +278,11 @@ list<int> getOddVectors( map<int,list<int> > MST ){
 
 	list<int> oddList;
 
-	Location city;
-	
 	map<int,list<int> >::iterator itr;
 
 	for( itr = MST.begin(); itr != MST.end(); itr++) {
 		if ( ( itr->second.size() % 2) == 1 ) {
-			oddList.push_back(city.id);
+			oddList.push_back(itr->first);
 		}
 	}
 
