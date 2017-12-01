@@ -32,6 +32,9 @@ void printMST( map<int, list<int> > MST );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
 list<int> euler_hamilton(map<int, list<int> > MST);
 
+list<int> pairwise(map<int, Location> cities, list<int> path);
+
+
 
 int main(int argc, char* argv[]) {
     
@@ -75,13 +78,18 @@ int main(int argc, char* argv[]) {
 		}
 	
 	
-		list<int> fpath = euler_hamilton(MST); 	//Final path
+
+		//list<int> fpath = euler_hamilton(MST);		//Hamiltonian Cycle path
+		list<int> newpath = euler_hamilton(MST);		//Hamiltonian Cycle path
+		list<int> fpath = pairwise(cities, newpath);
+
 
 		int origin;
 		int distance = 0;
 		list<int>::iterator itr = fpath.begin();
 		list<int>::iterator itr_end = fpath.end();
 		--itr_end;
+
 
 
 		while(itr != itr_end){
@@ -114,8 +122,141 @@ int main(int argc, char* argv[]) {
 }
 
 
+		while(itr != itr_end){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
+		}
+
+		//connect the last city back to the first
+		itr = fpath.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
+
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
+list<int> pairwise(map<int, Location> cities, list<int> path){
+	list<int> newpath;
+	int size = path.size();
+	int improve = 0;
+
+	while(improve < 1){
+
+		int origin;
+		int distance = 0;
+		list<int>::iterator itr = path.begin();
+		list<int>::iterator itr_end = path.end();
+		--itr_end;
+
+		string filename = argv[1];
+		filename += ".tour";
+		
+		ofstream oFile;
+
+		oFile.open(filename);
+
+		oFile << distance << endl;
+
+		for(itr = fpath.begin(); itr != fpath.end(); itr++){
+			oFile << *itr << endl;
+		}
+
+
+		while(itr != itr_end){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
+		}
+
+		//connect the last city back to the first
+		itr = path.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
+
+
+		for(int i=0; i < size-1; i++){
+			//cout << "loop" << i << endl;
+			for(int k=i+1; k < size; k++){
+
+				//Reorder path -- followed the wiki article psuedocode 
+				list<int>::iterator l_itr, temp_itr;
+			    l_itr=path.begin();
+				// 1. take route[0] to route[i-1] and add them in order to new_route
+			    for ( int c = 0; c <= i - 1; ++c )
+			    {
+			        newpath.push_back(*l_itr);
+			        l_itr++;
+			    }
+			     
+			    // 2. take route[i] to route[k] and add them in reverse order to new_route
+			    list<int> temp;
+			    for ( int c = i; c <= k; ++c )
+			    {
+			        temp.push_back(*l_itr);
+			        l_itr++;
+			    }
+			    temp_itr=temp.end(); //get to the last element in temp list so we can add them in reverse order
+			    temp_itr--;
+			    for ( int c = i; c <= k; ++c )
+			    {
+			        newpath.push_back(*temp_itr);
+			        temp_itr--;
+			    }
+			    temp.clear();
+
+			    // 3. take route[k+1] to end and add them in order to new_route
+			    for ( int c = k + 1; c < size; ++c )
+			    {
+			        newpath.push_back(*l_itr);
+			        l_itr++;
+			    }
+
+			    //cout << "newpath" << endl;
+			    //for(temp_itr=newpath.begin(); temp_itr != newpath.end(); temp_itr++){
+			    	//cout << *temp_itr << endl;
+			    //}
+
+			    int origin2;
+				int distance2 = 0;
+				list<int>::iterator itr2 = newpath.begin();
+				list<int>::iterator itr_end2 = newpath.end();
+				--itr_end2;
+
+
+				while(itr2 != itr_end2){
+					origin2 = *itr2;
+					itr2++;
+					distance2 += calcDistance( cities[ origin2 ], cities[ *itr2 ] );
+				}
+
+				//connect the last city back to the first
+				itr2 = newpath.begin();
+				distance2 += calcDistance(cities[*itr2], cities[*itr_end2]);
+
+				if (distance2 < distance) 
+                {
+                	cout << "made improvement" << endl;
+                    improve = 0;
+                    path = newpath;
+                    distance = distance2;
+                    newpath.clear(); //empty newpath container so we can repeat process
+                }
+                else{
+                	cout << "did not improve" << endl;
+                	newpath.clear();
+                }
+			}
+		}
+
+		improve ++;
+	}
+
+	return path;
+}
+
+		oFile.close();
+		
+	}
+	return 0;
+}
 
 
 
