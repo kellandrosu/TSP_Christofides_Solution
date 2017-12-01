@@ -269,7 +269,7 @@ void printMST( map<int, list<int> > MST) {
 	Returns the integer distance of two cities 
 */
 int calcDistance(Location c1, Location c2) {
-	long dx, dy;
+	unsigned long int dx, dy;
 
 	dx = c1.x - c2.x;
 	dx *= dx;
@@ -301,8 +301,8 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		list<int>::iterator list_itr;
 
 		//vars to keep track of shortest distance between MST and temp_cities
-		int distance;
-		int edge;
+		unsigned long int distance;
+		unsigned int edge;
 		int id1, id2;
 
 	//add first relationship to MST
@@ -312,7 +312,7 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		id1 = city.id;
 		temp_cities.erase( id1 );
 
-		distance = INT_MAX;
+		distance = ULLONG_MAX;
 		
 		//find city closest to city1 to initialize MST
 		for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++){				
@@ -330,7 +330,7 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		//add rest of cities
 		for( int i=0; i < (int)(cities.size()) - 2; i++){
 			
-			distance = INT_MAX;
+			distance = ULLONG_MAX;
 
 			//to get the next shortest distance between MST and temp_cities we iterate through the MST using mst_tr and list_itr
 			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {	
