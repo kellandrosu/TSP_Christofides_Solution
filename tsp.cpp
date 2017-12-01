@@ -88,13 +88,11 @@ int main(int argc, char* argv[]) {
 			origin = *itr;
 			itr++;
 			distance += calcDistance( cities[ origin ], cities[ *itr ] );
-			cout << origin << " to " << *itr << ": " << distance << endl;	
 		}
 
 		//connect the last city back to the first
 		itr = fpath.begin();
 		distance += calcDistance(cities[*itr], cities[*itr_end]);
-		cout << *itr_end << " to " << *itr << ": " << distance << endl;
 
 		string filename = argv[1];
 		filename += ".tour";
@@ -334,6 +332,7 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 
 			//to get the next shortest distance between MST and temp_cities we iterate through the MST using mst_tr and list_itr
 			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {	
+	
 				for( list_itr = mst_itr->second.begin();  list_itr != mst_itr->second.end();  list_itr++) {
 					
 					city = cities[ *list_itr ];
