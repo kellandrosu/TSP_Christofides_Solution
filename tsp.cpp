@@ -80,12 +80,21 @@ int main(int argc, char* argv[]) {
 		int origin;
 		int distance = 0;
 		list<int>::iterator itr = fpath.begin();
+		list<int>::iterator itr_end = fpath.end();
+		--itr_end;
 
-		while(itr != fpath.end()){
+
+		while(itr != itr_end){
 			origin = *itr;
 			itr++;
-			distance += calcDistance( cities[ origin ], cities[ *itr ] );	
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
+			cout << origin << " to " << *itr << ": " << distance << endl;	
 		}
+
+		//connect the last city back to the first
+		itr = fpath.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
+		cout << *itr_end << " to " << *itr << ": " << distance << endl;
 
 		string filename = argv[1];
 		filename += ".tour";
