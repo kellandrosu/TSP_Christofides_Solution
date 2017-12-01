@@ -13,6 +13,7 @@ Authors: Andrius Kelly, Sandhya Raman, Kevin Woods
 #include <climits>
 #include <cstring>
 #include <limits>
+#include <unordered_set>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ list<int> getOddVectors( map<int,list<int> > );
 void printMST( map<int, list<int> > MST );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
 list<int> euler_hamilton(map<int, list<int> > MST);
-bool isNotBridge(map<int, list<int> > &MST, int listtemp);
+list<int> pairwise(map<int, Location> cities, list<int> path);
 
 
 int main(int argc, char* argv[]) {
@@ -55,6 +56,8 @@ int main(int argc, char* argv[]) {
 			cities[city.id] = city;
 		}
 
+		iFile.close();
+
 		//get min spanning tree
 		map<int, list<int> > MST;
 		MST = getMST( cities );
@@ -67,40 +70,48 @@ int main(int argc, char* argv[]) {
 
 		map<int, int>::iterator itr1;
 		
-		///////////////for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); ++itr1) {
-			///////////////cout << itr1->first << ": " << itr1->second << endl;
-		//////////////}
-
-
 		//MST + perfect matching
 		for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); itr1++) {
 			MST[itr1->first].push_back(itr1->second);
 		}
-		printMST(MST); 
+	
+	
+		//list<int> fpath = euler_hamilton(MST);		//Hamiltonian Cycle path
+		list<int> newpath = euler_hamilton(MST);		//Hamiltonian Cycle path
+		list<int> fpath = pairwise(cities, newpath);
 
-		//Final path
-		list<int> fpath = euler_hamilton(MST); 
-		//list<int>::iterator fpit;
-		//for(fpit=fpath.begin(); fpit != fpath.end(); fpit++){
-		//	cout << *fpit << endl;
-		//}
+		int origin;
+		int distance = 0;
+		list<int>::iterator itr = fpath.begin();
+		list<int>::iterator itr_end = fpath.end();
+		--itr_end;
 
-		// printMST(MST);
 
-/*
-		//manually add matching pairs to MST for test.txt
-		if( strcmp(argv[1], "test.txt") == 0 ){
-			//add edge between vectors 6 and 3
-			MST[6].push_back(3);
-			MST[3].push_back(6);
-			//add edge between vectors 2 and 7
-			MST[2].push_back(7);
-			MST[7].push_back(2);
+		while(itr != itr_end){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
+		}
 
-			cout << endl;
-			printMST(MST);
-		} */
+		//connect the last city back to the first
+		itr = fpath.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
 
+		string filename = argv[1];
+		filename += ".tour";
+		
+		ofstream oFile;
+
+		oFile.open(filename);
+
+		oFile << distance << endl;
+
+		for(itr = fpath.begin(); itr != fpath.end(); itr++){
+			oFile << *itr << endl;
+		}
+
+		oFile.close();
+		
 	}
 	return 0;
 }
@@ -108,89 +119,179 @@ int main(int argc, char* argv[]) {
 
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
-bool isNotBridge(map<int, list<int> > MST, int listtemp, int maptemp){
-	map<int, list<int> > tempMST;
-	tempMST = MST;
+list<int> pairwise(map<int, Location> cities, list<int> path){
+	list<int> newpath;
+	int size = path.size();
+	int improve = 0;
 
-	map<int, list<int> >::iterator m_itr;
-	list<int>::iterator l_itr;
+	while(improve < 1){
 
-	//Delete the edge that we are considering taking
-	tempMST.find(maptemp)->second.remove(listtemp);
-	tempMST.find(listtemp)->second.remove(maptemp);
-	//If deleting the edge leaves empty list, depete that key in the map
-	if(tempMST.find(maptemp)->second.empty())	
-		tempMST.erase(maptemp);	
+		int origin;
+		int distance = 0;
+		list<int>::iterator itr = path.begin();
+		list<int>::iterator itr_end = path.end();
+		--itr_end;
 
 
-	m_itr = tempMST.begin();
-
-	while(1){
-		if((m_itr->second.empty()) && (tempMST.size() == 1))
-			return 1;
-
-		else if((m_itr->second.empty()) && (tempMST.size() > 1))
-			return 0;
-		else{
-			l_itr = m_itr->second.begin();
-
-			int ltemp = *l_itr;
-			int mtemp = m_itr->first;
-
-			m_itr->second.remove(ltemp);			//Remove edge from city 1 in map
-			tempMST.find(ltemp)->second.remove(mtemp);	//Remove edge from city two in map
-
-			if(m_itr->second.empty())	//If the city doesn't share any more edges with any other city
-			tempMST.erase(m_itr);		//Delete the city from the map
-
-			m_itr = tempMST.find(ltemp);
+		while(itr != itr_end){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
 		}
-	}
-}
 
-list<int> euler_hamilton(map<int, list<int> > MST) {
-
-	list<int> path;
-
-	map<int, list<int> >::iterator m_itr;
-	list<int>::iterator pathtemp;
-	list<int>::iterator l_itr;
-
-	m_itr = MST.begin();
-	path.push_back(m_itr->first);
-
-	while (!MST.empty()) { //While the map is not empty																				
-		for( l_itr = m_itr->second.begin();  l_itr != m_itr->second.end();  l_itr++){ 
-			int ltemp = *l_itr;
-			int mtemp = m_itr->first;
-			if(isNotBridge(MST, ltemp, mtemp) == 1){			//If this edge is not a bridge
-				path.push_back(ltemp);					//Add the edge to the path
-				m_itr->second.remove(ltemp);			//Remove edge from city 1 in map
-				MST.find(ltemp)->second.remove(mtemp);	//Remove edge from city two in map
-
-				if(m_itr->second.empty())	//If the city doesn't share any more edges with any other city
-					MST.erase(m_itr);		//Delete the city from the map
-
-				m_itr = MST.find(ltemp);
+		//connect the last city back to the first
+		itr = path.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
 
 
-				pathtemp=path.begin();
-				for(pathtemp; pathtemp != path.end();  pathtemp++){
-					cout << *pathtemp << endl;
+		for(int i=0; i < size-1; i++){
+			//cout << "loop" << i << endl;
+			for(int k=i+1; k < size; k++){
+
+				//Reorder path -- followed the wiki article psuedocode 
+				list<int>::iterator l_itr, temp_itr;
+			    l_itr=path.begin();
+				// 1. take route[0] to route[i-1] and add them in order to new_route
+			    for ( int c = 0; c <= i - 1; ++c )
+			    {
+			        newpath.push_back(*l_itr);
+			        l_itr++;
+			    }
+			     
+			    // 2. take route[i] to route[k] and add them in reverse order to new_route
+			    list<int> temp;
+			    for ( int c = i; c <= k; ++c )
+			    {
+			        temp.push_back(*l_itr);
+			        l_itr++;
+			    }
+			    temp_itr=temp.end(); //get to the last element in temp list so we can add them in reverse order
+			    temp_itr--;
+			    for ( int c = i; c <= k; ++c )
+			    {
+			        newpath.push_back(*temp_itr);
+			        temp_itr--;
+			    }
+			    temp.clear();
+
+			    // 3. take route[k+1] to end and add them in order to new_route
+			    for ( int c = k + 1; c < size; ++c )
+			    {
+			        newpath.push_back(*l_itr);
+			        l_itr++;
+			    }
+
+			    //cout << "newpath" << endl;
+			    //for(temp_itr=newpath.begin(); temp_itr != newpath.end(); temp_itr++){
+			    	//cout << *temp_itr << endl;
+			    //}
+
+			    int origin2;
+				int distance2 = 0;
+				list<int>::iterator itr2 = newpath.begin();
+				list<int>::iterator itr_end2 = newpath.end();
+				--itr_end2;
+
+
+				while(itr2 != itr_end2){
+					origin2 = *itr2;
+					itr2++;
+					distance2 += calcDistance( cities[ origin2 ], cities[ *itr2 ] );
 				}
-				break;
-			}
-			
-			else
-				l_itr++;
 
+				//connect the last city back to the first
+				itr2 = newpath.begin();
+				distance2 += calcDistance(cities[*itr2], cities[*itr_end2]);
+
+				if (distance2 < distance) 
+                {
+                	cout << "made improvement" << endl;
+                    improve = 0;
+                    path = newpath;
+                    distance = distance2;
+                    newpath.clear(); //empty newpath container so we can repeat process
+                }
+                else{
+                	cout << "did not improve" << endl;
+                	newpath.clear();
+                }
+			}
 		}
+
+		improve ++;
 	}
 
 	return path;
 }
 
 
+
+//finds a hamiltonian cycle of the modified MST
+list<int> euler_hamilton(map<int, list<int> > MST) {
+
+	list<int> path;
+
+	map<int, list<int> >::iterator m_itr;
+	list<int>::iterator p_itr;
+
+	m_itr = MST.begin();
+
+	path.push_back(m_itr->first);
+	p_itr = path.begin();
+
+	int neighbor;
+	
+	//first build euler tour 
+	//randomly walk through MST. if we hit first element and MST is not empty, find an element in MST and add it
+	while ( !MST.empty()) { //While the map is not empty
+
+		neighbor = MST[ *p_itr ].front();
+		
+		//remove edge from both MST lists
+		MST[ *p_itr ].remove( neighbor );
+		MST[ neighbor ].remove( *p_itr );
+
+		if( MST[ *p_itr ].empty() ) 
+			MST.erase( *p_itr );
+		
+		p_itr++;
+		path.insert(p_itr, neighbor);
+		p_itr--;
+		
+		if( MST[ neighbor ].empty() ) {
+			MST.erase( neighbor );
+		}
+
+		//if neighbor has nowhere to go, remove it from MST
+		if( MST[ *p_itr ].empty() ) {
+			MST.erase( *p_itr );
+			//if we completed a cycle but MST !empty, then create new path loop at remaining MST element
+			if( !MST.empty() ){
+				//iterate down path until we find a node that still has edges
+				p_itr = path.begin();
+				while( MST.find( *p_itr ) == MST.end() ){
+					p_itr++;
+				}
+			}
+		}
+	}
+	
+	//build hamiltonian cycle by ignoring repeat nodes on euler tour
+
+	//to keep track of used nodes
+	unordered_set<int> traveled;
+
+	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
+		if( traveled.find( *p_itr ) == traveled.end() ){
+			traveled.insert(*p_itr);
+		}
+		else {
+			p_itr = path.erase(p_itr);
+		}
+	}
+
+	return path;
+}
 
 
 
@@ -245,6 +346,7 @@ map<int, int> perfectMatching(list<int> oddVectors, map<int, Location> cities) {
 
 
 
+
 /*		printMST(map<int, list<int>>)
 	prints the MST
 */
@@ -271,7 +373,7 @@ void printMST( map<int, list<int> > MST) {
 	Returns the integer distance of two cities 
 */
 int calcDistance(Location c1, Location c2) {
-	long dx, dy;
+	unsigned long int dx, dy;
 
 	dx = c1.x - c2.x;
 	dx *= dx;
@@ -303,8 +405,8 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		list<int>::iterator list_itr;
 
 		//vars to keep track of shortest distance between MST and temp_cities
-		int distance;
-		int edge;
+		unsigned long int distance;
+		unsigned int edge;
 		int id1, id2;
 
 	//add first relationship to MST
@@ -314,7 +416,7 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		id1 = city.id;
 		temp_cities.erase( id1 );
 
-		distance = INT_MAX;
+		distance = ULLONG_MAX;
 		
 		//find city closest to city1 to initialize MST
 		for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++){				
@@ -330,12 +432,13 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		temp_cities.erase(id2);
 
 		//add rest of cities
-		for( int i=0; i < cities.size() - 2; i++){
+		for( int i=0; i < (int)(cities.size()) - 2; i++){
 			
-			distance = INT_MAX;
+			distance = ULLONG_MAX;
 
 			//to get the next shortest distance between MST and temp_cities we iterate through the MST using mst_tr and list_itr
 			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {	
+	
 				for( list_itr = mst_itr->second.begin();  list_itr != mst_itr->second.end();  list_itr++) {
 					
 					city = cities[ *list_itr ];
