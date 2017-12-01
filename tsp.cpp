@@ -115,13 +115,15 @@ int main(int argc, char* argv[]) {
 			oFile << *itr << endl;
 		}
 
+		cout << "Distance: " << distance << endl;
+
 		oFile.close();
 		
 	}
 	return 0;
 }
 
-
+/*
 		while(itr != itr_end){
 			origin = *itr;
 			itr++;
@@ -131,7 +133,7 @@ int main(int argc, char* argv[]) {
 		//connect the last city back to the first
 		itr = fpath.begin();
 		distance += calcDistance(cities[*itr], cities[*itr_end]);
-
+*/
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
 list<int> pairwise(map<int, Location> cities, list<int> path){
@@ -147,7 +149,7 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 		list<int>::iterator itr_end = path.end();
 		--itr_end;
 
-		string filename = argv[1];
+/*		string filename = argv[1];
 		filename += ".tour";
 		
 		ofstream oFile;
@@ -159,7 +161,7 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 		for(itr = fpath.begin(); itr != fpath.end(); itr++){
 			oFile << *itr << endl;
 		}
-
+*/
 
 		while(itr != itr_end){
 			origin = *itr;
@@ -233,14 +235,14 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 
 				if (distance2 < distance) 
                 {
-                	cout << "made improvement" << endl;
+  //              	cout << "made improvement" << endl;
                     improve = 0;
                     path = newpath;
                     distance = distance2;
                     newpath.clear(); //empty newpath container so we can repeat process
                 }
                 else{
-                	cout << "did not improve" << endl;
+    //            	cout << "did not improve" << endl;
                 	newpath.clear();
                 }
 			}
@@ -252,11 +254,11 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 	return path;
 }
 
-		oFile.close();
+/*		oFile.close();
 		
 	}
 	return 0;
-}
+}*/
 
 
 
