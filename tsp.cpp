@@ -76,30 +76,14 @@ int main(int argc, char* argv[]) {
 		for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); itr1++) {
 			MST[itr1->first].push_back(itr1->second);
 		}
-		printMST(MST); 
+	
+	//Final path
 
-		//Final path
 		list<int> fpath = euler_hamilton(MST); 
 		//list<int>::iterator fpit;
 		//for(fpit=fpath.begin(); fpit != fpath.end(); fpit++){
 		//	cout << *fpit << endl;
 		//}
-
-		// printMST(MST);
-
-/*
-		//manually add matching pairs to MST for test.txt
-		if( strcmp(argv[1], "test.txt") == 0 ){
-			//add edge between vectors 6 and 3
-			MST[6].push_back(3);
-			MST[3].push_back(6);
-			//add edge between vectors 2 and 7
-			MST[2].push_back(7);
-			MST[7].push_back(2);
-
-			cout << endl;
-			printMST(MST);
-		} */
 
 	}
 	return 0;
@@ -108,83 +92,59 @@ int main(int argc, char* argv[]) {
 
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
-bool isNotBridge(map<int, list<int> > MST, int listtemp, int maptemp){
-	map<int, list<int> > tempMST;
-	tempMST = MST;
 
-	map<int, list<int> >::iterator m_itr;
-	list<int>::iterator l_itr;
-
-	//Delete the edge that we are considering taking
-	tempMST.find(maptemp)->second.remove(listtemp);
-	tempMST.find(listtemp)->second.remove(maptemp);
-	//If deleting the edge leaves empty list, depete that key in the map
-	if(tempMST.find(maptemp)->second.empty())	
-		tempMST.erase(maptemp);	
-
-
-	m_itr = tempMST.begin();
-
-	while(1){
-		if((m_itr->second.empty()) && (tempMST.size() == 1))
-			return 1;
-
-		else if((m_itr->second.empty()) && (tempMST.size() > 1))
-			return 0;
-		else{
-			l_itr = m_itr->second.begin();
-
-			int ltemp = *l_itr;
-			int mtemp = m_itr->first;
-
-			m_itr->second.remove(ltemp);			//Remove edge from city 1 in map
-			tempMST.find(ltemp)->second.remove(mtemp);	//Remove edge from city two in map
-
-			if(m_itr->second.empty())	//If the city doesn't share any more edges with any other city
-			tempMST.erase(m_itr);		//Delete the city from the map
-
-			m_itr = tempMST.find(ltemp);
-		}
-	}
-}
 
 list<int> euler_hamilton(map<int, list<int> > MST) {
 
 	list<int> path;
 
 	map<int, list<int> >::iterator m_itr;
-	list<int>::iterator pathtemp;
-	list<int>::iterator l_itr;
+	list<int>::iterator p_itr;
 
 	m_itr = MST.begin();
+
 	path.push_back(m_itr->first);
+	p_itr = path.begin();
 
-	while (!MST.empty()) { //While the map is not empty																				
-		for( l_itr = m_itr->second.begin();  l_itr != m_itr->second.end();  l_itr++){ 
-			int ltemp = *l_itr;
-			int mtemp = m_itr->first;
-			if(isNotBridge(MST, ltemp, mtemp) == 1){			//If this edge is not a bridge
-				path.push_back(ltemp);					//Add the edge to the path
-				m_itr->second.remove(ltemp);			//Remove edge from city 1 in map
-				MST.find(ltemp)->second.remove(mtemp);	//Remove edge from city two in map
+	int neighbor;
 
-				if(m_itr->second.empty())	//If the city doesn't share any more edges with any other city
-					MST.erase(m_itr);		//Delete the city from the map
+	//randomly walk through MST. if we hit first element and MST is not empty, find an element in MST and add it
+	while ( !MST.empty()) { //While the map is not empty
 
-				m_itr = MST.find(ltemp);
+for(list<int>::iterator l_itr = path.begin(); l_itr != path.end(); l_itr++)
+	cout << *l_itr << "-";
+cout << endl;
+printMST(MST);
 
+cin.get();
 
-				pathtemp=path.begin();
-				for(pathtemp; pathtemp != path.end();  pathtemp++){
-					cout << *pathtemp << endl;
-				}
-				break;
-			}
-			
-			else
-				l_itr++;
+		neighbor = MST[ *p_itr ].front();
+		
+		//remove edge from both MST lists
+		MST[ *p_itr ].remove( neighbor );
+		MST[ neighbor ].remove( *p_itr );
 
+		p_itr++;
+		path.insert(p_itr, neighbor);
+		p_itr--;
+		
+		if( MST[ neighbor ].empty() ) {
+			MST.erase( neighbor );
 		}
+
+		//if neighbor has nowhere to go, remove it from MST
+		if( MST[ *p_itr ].empty() ) {
+			MST.erase( *p_itr );
+			//if we completed a cycle but MST !empty, then create new path loop at remaining MST element
+			if( !MST.empty() ){
+				//iterate down path until we find a node that still has edges
+				p_itr = path.begin();
+				while( MST.find( *p_itr ) == MST.end() ){
+					p_itr++;
+				}
+			}
+		}
+
 	}
 
 	return path;
