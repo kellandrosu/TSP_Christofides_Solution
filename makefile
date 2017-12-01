@@ -1,4 +1,4 @@
-FLAGS = -Wall -Werror -std=c++11 -g
+CFLAGS = -Wall -Werror -std=c++11 -g
 
 tsp: tsp.cpp
 	g++ tsp.cpp -o tsp $(CFLAGS)

@@ -31,7 +31,9 @@ list<int> getOddVectors( map<int,list<int> > );
 void printMST( map<int, list<int> > MST );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
 list<int> euler_hamilton(map<int, list<int> > MST);
+
 list<int> pairwise(map<int, Location> cities, list<int> path);
+
 
 
 int main(int argc, char* argv[]) {
@@ -76,15 +78,18 @@ int main(int argc, char* argv[]) {
 		}
 	
 	
+
 		//list<int> fpath = euler_hamilton(MST);		//Hamiltonian Cycle path
 		list<int> newpath = euler_hamilton(MST);		//Hamiltonian Cycle path
 		list<int> fpath = pairwise(cities, newpath);
+
 
 		int origin;
 		int distance = 0;
 		list<int>::iterator itr = fpath.begin();
 		list<int>::iterator itr_end = fpath.end();
 		--itr_end;
+
 
 
 		while(itr != itr_end){
@@ -117,6 +122,16 @@ int main(int argc, char* argv[]) {
 }
 
 
+		while(itr != itr_end){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );
+		}
+
+		//connect the last city back to the first
+		itr = fpath.begin();
+		distance += calcDistance(cities[*itr], cities[*itr_end]);
+
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
 list<int> pairwise(map<int, Location> cities, list<int> path){
@@ -131,6 +146,19 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 		list<int>::iterator itr = path.begin();
 		list<int>::iterator itr_end = path.end();
 		--itr_end;
+
+		string filename = argv[1];
+		filename += ".tour";
+		
+		ofstream oFile;
+
+		oFile.open(filename);
+
+		oFile << distance << endl;
+
+		for(itr = fpath.begin(); itr != fpath.end(); itr++){
+			oFile << *itr << endl;
+		}
 
 
 		while(itr != itr_end){
@@ -223,6 +251,13 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 
 	return path;
 }
+
+		oFile.close();
+		
+	}
+	return 0;
+}
+
 
 
 
