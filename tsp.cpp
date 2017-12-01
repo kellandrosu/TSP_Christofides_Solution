@@ -13,6 +13,7 @@ Authors: Andrius Kelly, Sandhya Raman, Kevin Woods
 #include <climits>
 #include <cstring>
 #include <limits>
+#include <unordered_set>
 
 using namespace std;
 
@@ -30,7 +31,6 @@ list<int> getOddVectors( map<int,list<int> > );
 void printMST( map<int, list<int> > MST );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
 list<int> euler_hamilton(map<int, list<int> > MST);
-bool isNotBridge(map<int, list<int> > &MST, int listtemp);
 
 
 int main(int argc, char* argv[]) {
@@ -55,6 +55,8 @@ int main(int argc, char* argv[]) {
 			cities[city.id] = city;
 		}
 
+		iFile.close();
+
 		//get min spanning tree
 		map<int, list<int> > MST;
 		MST = getMST( cities );
@@ -67,24 +69,39 @@ int main(int argc, char* argv[]) {
 
 		map<int, int>::iterator itr1;
 		
-		///////////////for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); ++itr1) {
-			///////////////cout << itr1->first << ": " << itr1->second << endl;
-		//////////////}
-
-
 		//MST + perfect matching
 		for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); itr1++) {
 			MST[itr1->first].push_back(itr1->second);
 		}
 	
-	//Final path
+	
+		list<int> fpath = euler_hamilton(MST); 	//Final path
 
-		list<int> fpath = euler_hamilton(MST); 
-		//list<int>::iterator fpit;
-		//for(fpit=fpath.begin(); fpit != fpath.end(); fpit++){
-		//	cout << *fpit << endl;
-		//}
+		int origin;
+		int distance = 0;
+		list<int>::iterator itr = fpath.begin();
 
+		while(itr != fpath.end()){
+			origin = *itr;
+			itr++;
+			distance += calcDistance( cities[ origin ], cities[ *itr ] );	
+		}
+
+		string filename = argv[1];
+		filename += ".tour";
+		
+		ofstream oFile;
+
+		oFile.open(filename);
+
+		oFile << distance << endl;
+
+		for(itr = fpath.begin(); itr != fpath.end(); itr++){
+			oFile << *itr << endl;
+		}
+
+		oFile.close();
+		
 	}
 	return 0;
 }
@@ -94,6 +111,9 @@ int main(int argc, char* argv[]) {
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
 
 
+
+
+//finds a hamiltonian cycle of the modified MST
 list<int> euler_hamilton(map<int, list<int> > MST) {
 
 	list<int> path;
@@ -107,16 +127,10 @@ list<int> euler_hamilton(map<int, list<int> > MST) {
 	p_itr = path.begin();
 
 	int neighbor;
-
+	
+	//first build euler tour 
 	//randomly walk through MST. if we hit first element and MST is not empty, find an element in MST and add it
 	while ( !MST.empty()) { //While the map is not empty
-
-for(list<int>::iterator l_itr = path.begin(); l_itr != path.end(); l_itr++)
-	cout << *l_itr << "-";
-cout << endl;
-printMST(MST);
-
-cin.get();
 
 		neighbor = MST[ *p_itr ].front();
 		
@@ -124,6 +138,9 @@ cin.get();
 		MST[ *p_itr ].remove( neighbor );
 		MST[ neighbor ].remove( *p_itr );
 
+		if( MST[ *p_itr ].empty() ) 
+			MST.erase( *p_itr );
+		
 		p_itr++;
 		path.insert(p_itr, neighbor);
 		p_itr--;
@@ -144,13 +161,24 @@ cin.get();
 				}
 			}
 		}
+	}
+	
+	//build hamiltonian cycle by ignoring repeat nodes on euler tour
 
+	//to keep track of used nodes
+	unordered_set<int> traveled;
+
+	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
+		if( traveled.find( *p_itr ) == traveled.end() ){
+			traveled.insert(*p_itr);
+		}
+		else {
+			p_itr = path.erase(p_itr);
+		}
 	}
 
 	return path;
 }
-
-
 
 
 
@@ -202,6 +230,7 @@ map<int, int> perfectMatching(list<int> oddVectors, map<int, Location> cities) {
 
 	return oddMatch;
 }
+
 
 
 
@@ -290,7 +319,7 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 		temp_cities.erase(id2);
 
 		//add rest of cities
-		for( int i=0; i < cities.size() - 2; i++){
+		for( int i=0; i < (int)(cities.size()) - 2; i++){
 			
 			distance = INT_MAX;
 
