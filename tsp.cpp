@@ -287,21 +287,58 @@ int calcDistance(Location c1, Location c2) {
 */
 map<int, list<int> >  getminTree( map<int, Location> cities) {	
 
+	map<int, list<int> > minTreeMap;
+	
 	int numCities = cities.size();
 
 	//keep track of vectors
 	vector<bool> inTree;
 	inTree.assign ( numCities, false );
 	
-	vector< list<int> > nodeEdges ( numCities );
+	vector<int> minEdge( numCities );
+	vector<int> minEdgeDist( numCities );
+	
+	int minAdjCity;
 
+	//find min distance for all nodes in tree
+
+		//add node for smallest min distance
+
+		//update min distance for only the city that was added and its adjacent city
+
+	int tempDistance;
+	
 	inTree[0] = true;
 
-	for(int i=0; i < numCities - 1; i++){
+	//iterate through tree
+	for(int i=0; i < numCities; i++){
+		//initialize minimum distance of each node in tree to node outside
+		dif( inTree[i] ) {			
+			minEdgeDist[i] = -1;
+			for ( int j=0; j < numCities; j++ ){
+				if ( !inTree[j] ){
+					tempDistance = calcDistance( cities[i], cities[j] );
+					if (minEdgeDist[i] < 0 || tempDistance < minEdgeDist[i] ){
+						minEdgeDist[i] = tempDistance;;
+						minEdge[i] = j;
+					}
+				}
+			}
+		}
+		
+		//find shortest min distance
+		tempDistance = INT_MAX;
+		for (int j = 0; j < numCities; j++){
+			if ( minEdgeDist[j] < tempDistance ) {
+				tempDistance = minEdgeDist[j];
+				minAdjCity = j;
+			}
+		}
+		//add it to tree
+		inTree[ minAdjCity ] = true;
 		
 	}
 
-	map<int, list<int> > minTreeMap;
 
 	return minTreeMap;
 }
