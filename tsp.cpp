@@ -287,60 +287,108 @@ int calcDistance(Location c1, Location c2) {
 */
 map<int, list<int> >  getminTree( map<int, Location> cities) {	
 
-	map<int, list<int> > minTreeMap;
-	
 	int numCities = cities.size();
 
+	map<int, list<int> > minTree;
+	
+	unordered_set<int> outsideCities;
+
 	//keep track of vectors
-	vector<bool> inTree;
-	inTree.assign ( numCities, false );
-	
-	vector<int> minEdge( numCities );
-	vector<int> minEdgeDist( numCities );
-	
+	vector<int> closestCityOutside( numCities );
+	vector<int> closestCityDist( numCities );
+
 	int minAdjCity;
-
-	//find min distance for all nodes in tree
-
-		//add node for smallest min distance
-
-		//update min distance for only the city that was added and its adjacent city
-
 	int tempDistance;
 	
-	inTree[0] = true;
+	//initialize MST with city 0 and its nearest neighbor
+	tempDistance = INT_MAX;
+	for (int i=1; i< numCities; i++){
+		if ( calcDistance( cities[0], cities[i]) < tempDistance ){
+			tempDistance = calcDistance( cities[0], cities[i]);
+			minAdjCity = i;
+		}
+	}
+	minTree[0].push_back(minAdjCity);
+	minTree[minAdjCity].push_back(0);
 
-	//iterate through tree
-	for(int i=0; i < numCities; i++){
-		//initialize minimum distance of each node in tree to node outside
-		dif( inTree[i] ) {			
-			minEdgeDist[i] = -1;
-			for ( int j=0; j < numCities; j++ ){
-				if ( !inTree[j] ){
-					tempDistance = calcDistance( cities[i], cities[j] );
-					if (minEdgeDist[i] < 0 || tempDistance < minEdgeDist[i] ){
-						minEdgeDist[i] = tempDistance;;
-						minEdge[i] = j;
+
+	//keep track of cities outside MST
+	for(int i=1; i < numCities; i++){
+		outsideCities.insert(i);
+	}
+	outsideCities.erase(minAdjCity);
+
+
+	//next calculate closest city outside of tree to each city inside tree 
+	for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+		closestCityDist[ m_itr->first ] = -1;
+		for ( int j=1; j < numCities; j++ ){
+			if ( j != minAdjCity ){
+				tempDistance = calcDistance( cities[ m_itr->first ], cities[j] );
+				if (closestCityDist[ m_itr->first ] < 0 || tempDistance < closestCityDist[ m_itr->first ] ){
+					closestCityDist[ m_itr->first ] = tempDistance;
+					closestCityOutside[ m_itr->first ] = j;
+				}
+			}
+		}	
+	}	
+
+
+	int insideCity, outsideCity;
+
+	//BUILD MST for rest of the cities
+	for(int n=0; n<numCities - 2; n++) {
+
+		//find shortest distance between tree and outside tree
+		tempDistance = INT_MAX;
+		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+			if ( closestCityDist[ m_itr->first ] < tempDistance ) {
+				insideCity = m_itr->first;
+				tempDistance = closestCityDist[insideCity];
+				outsideCity = closestCityOutside[insideCity];
+			}
+		}
+
+
+		//add outsideCity to MST
+		minTree[ insideCity ].push_back( outsideCity ); 
+		minTree[ outsideCity ].push_back( insideCity );
+
+
+		outsideCities.erase(outsideCity);
+
+		
+		//find the closest outside city to newly added city
+		closestCityDist[outsideCity] = INT_MAX;
+		for( unordered_set<int>::iterator o_itr = outsideCities.begin(); o_itr != outsideCities.end(); o_itr++){
+			tempDistance = calcDistance( cities[outsideCity], cities[ *o_itr ] );
+			if ( tempDistance < closestCityDist[outsideCity] ) {
+				closestCityOutside[outsideCity] = *o_itr;
+				closestCityDist[outsideCity] = tempDistance;
+			}
+		}
+		
+		//update any other cities that were closest to outside city
+		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+
+			if ( closestCityOutside[ m_itr->first ] == outsideCity ) {
+			
+				//then we need to find a new city
+				closestCityDist[ m_itr->first ] = INT_MAX;
+				
+				for( unordered_set<int>::iterator o_itr = outsideCities.begin(); o_itr != outsideCities.end(); o_itr++) {
+					
+					tempDistance = calcDistance( cities[ m_itr->first ], cities[*o_itr]);
+					
+					if ( tempDistance < closestCityDist[ m_itr->first ] ) {
+						closestCityOutside[ m_itr->first ] = *o_itr;
+						closestCityDist[ m_itr->first ] = tempDistance;
 					}
 				}
 			}
 		}
-		
-		//find shortest min distance
-		tempDistance = INT_MAX;
-		for (int j = 0; j < numCities; j++){
-			if ( minEdgeDist[j] < tempDistance ) {
-				tempDistance = minEdgeDist[j];
-				minAdjCity = j;
-			}
-		}
-		//add it to tree
-		inTree[ minAdjCity ] = true;
-		
 	}
-
-
-	return minTreeMap;
+	return minTree;
 }
 
 
