@@ -20,8 +20,8 @@ using namespace std;
 
 struct Location {
 	int id;
-	int x;
-	int y;
+	float x;
+	float y;
 };
 
 // PROTOTYPES
@@ -79,9 +79,9 @@ int main(int argc, char* argv[]) {
 	
 	
 
-		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-//		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-//		list<int> fpath = pairwise(cities, newpath);
+		// list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+		list<int> fpath = pairwise(cities, newpath);
 
 
 		int origin;
@@ -141,7 +141,7 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 	int size = path.size();
 	int improve = 0;
 
-	while(improve < 1){
+	while(improve < 2){
 
 		int origin;
 		int distance = 0;
@@ -321,7 +321,6 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 
 	//to keep track of used nodes
 	unordered_set<int> traveled;
-
 	map<int, int> duplicates;
 
 	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
@@ -337,6 +336,23 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 		}
 	}
 
+	int num = dupCities.back();
+	dupCities.pop_back();
+	do {
+		for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
+			if (*p_itr == num) {
+				path.erase(p_itr++);
+				if (!dupCities.empty()) {
+					num = dupCities.back();
+					dupCities.pop_back();
+				} else {
+					break;
+				}
+			}
+		}
+	} while (!dupCities.empty());
+
+
 /*	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
 		if( traveled.find( *p_itr ) == traveled.end() ){
 			traveled.insert(*p_itr);
@@ -346,9 +362,9 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 		}
 	}
 */
-cout << endl;
-for (list<int>::iterator x = path.begin(); x != path.end(); x++)
-	cout << *x << " ";
+// cout << endl;
+// for (list<int>::iterator x = path.begin(); x != path.end(); x++)
+// 	cout << *x << " ";
 	
 	return path;
 }
@@ -433,14 +449,14 @@ void printminTree( map<int, list<int> > minTree) {
 	Returns the integer distance of two cities 
 */
 int calcDistance(Location c1, Location c2) {
-	unsigned long int dx, dy;
+	float dx, dy;
 
 	dx = c1.x - c2.x;
 	dx *= dx;
 	dy = c1.y - c2.y;
 	dy *= dy;
 
-	return static_cast<int>( sqrt( dx + dy ) );
+	return static_cast<int>( round(sqrt( dx + dy )) );
 }
 
 
@@ -551,8 +567,8 @@ cout << n << " ";
 			}
 		}
 	}
-	cout << "MST complete!" << endl;
-	cout << "MST size = " << minTree.size() << endl;
+	// cout << "MST complete!" << endl;
+	// cout << "MST size = " << minTree.size() << endl;
 	return minTree;
 }
 
