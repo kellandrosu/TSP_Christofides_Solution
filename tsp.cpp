@@ -79,8 +79,8 @@ int main(int argc, char* argv[]) {
 	
 	
 
-		//list<int> fpath = euler_hamilton(MST);		//Hamiltonian Cycle path
-		list<int> newpath = euler_hamilton(MST);		//Hamiltonian Cycle path
+//		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
 		list<int> fpath = pairwise(cities, newpath);
 
 
@@ -256,11 +256,6 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 	return path;
 }
 
-/*		oFile.close();
-		
-	}
-	return 0;
-}*/
 
 
 
@@ -480,7 +475,7 @@ map<int, list<int> >  getminTree( map<int, Location> cities) {
 cout << "n = " << numCities << endl;
 	//BUILD MST for rest of the cities
 	for(int n=0; n<numCities - 2; n++) {
-cout << n << " " ;
+cout << n << " ";
 		//find shortest distance between tree and outside tree
 		tempDistance = INT_MAX;
 		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
@@ -530,6 +525,7 @@ cout << n << " " ;
 			}
 		}
 	}
+	cout << "MST complete!" << endl;
 	return minTree;
 }
 
