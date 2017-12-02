@@ -333,12 +333,11 @@ map<int, list<int> >  getminTree( map<int, Location> cities) {
 		}	
 	}	
 
-
 	int insideCity, outsideCity;
-
+cout << "n = " << numCities << endl;
 	//BUILD MST for rest of the cities
 	for(int n=0; n<numCities - 2; n++) {
-
+cout << n << " " ;
 		//find shortest distance between tree and outside tree
 		tempDistance = INT_MAX;
 		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
