@@ -320,8 +320,8 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 	//build hamiltonian cycle by ignoring repeat nodes on euler tour
 
 	//to keep track of used nodes
-	unordered_set<int> traveled;
-	map<int, int> duplicates;
+
+/*	map<int, int> duplicates;
 
 	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
 		duplicates[*p_itr]++;
@@ -351,22 +351,23 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 			}
 		}
 	} while (!dupCities.empty());
+*/
 
+	unordered_set<int> traveled;
+	list <int> finalpath;
 
-/*	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
+	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
 		if( traveled.find( *p_itr ) == traveled.end() ){
 			traveled.insert(*p_itr);
-		}
-		else {
-			p_itr = path.erase(p_itr);
+			finalpath.push_back( *p_itr);
 		}
 	}
-*/
-// cout << endl;
-// for (list<int>::iterator x = path.begin(); x != path.end(); x++)
-// 	cout << *x << " ";
-	
-	return path;
+
+ cout << endl;
+ for (list<int>::iterator x = finalpath.begin(); x != finalpath.end(); x++)
+ 	cout << *x << " ";
+cout << endl << "path size: " << finalpath.size() << endl;	
+	return finalpath;
 }
 
 
@@ -567,8 +568,8 @@ cout << n << " ";
 			}
 		}
 	}
-	// cout << "MST complete!" << endl;
-	// cout << "MST size = " << minTree.size() << endl;
+	 cout << "MST complete!" << endl;
+	 cout << "MST size = " << minTree.size() << endl;
 	return minTree;
 }
 
