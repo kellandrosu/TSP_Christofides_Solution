@@ -1,7 +1,5 @@
-CFLAGS = -Wall -Werror -std=c++11 -g
-
 tsp: tsp.cpp
-	g++ tsp.cpp -o tsp $(CFLAGS)
+	g++ -g tsp.cpp -o tsp -Wall -Werror -std=c++11 -O3 
 
 clean:
 	rm -f tsp tsp.o tsp.exe
