@@ -26,11 +26,11 @@ struct Location {
 
 // PROTOTYPES
 int calcDistance(Location c1, Location c2);
-map<int, list<int> >  getMST( map<int, Location> cities);	
+map<int, list<int> >  getminTree( map<int, Location> cities);	
 list<int> getOddVectors( map<int,list<int> > );
-void printMST( map<int, list<int> > MST );
+void printminTree( map<int, list<int> > minTree );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
-list<int> euler_hamilton(map<int, list<int> > MST);
+list<int> euler_hamilton(map<int, list<int> > minTree);
 
 list<int> pairwise(map<int, Location> cities, list<int> path);
 
@@ -61,20 +61,20 @@ int main(int argc, char* argv[]) {
 		iFile.close();
 
 		//get min spanning tree
-		map<int, list<int> > MST;
-		MST = getMST( cities );
+		map<int, list<int> > minTree;
+		minTree = getminTree( cities );
 
 		//get list of city ID's that have odd edges
-		list<int> oddVectors = getOddVectors(MST);
+		list<int> oddVectors = getOddVectors(minTree);
 
 		//get a map of city ID's to their perfect match city ID
 		map<int, int> oddMatch = perfectMatching(oddVectors, cities);
 
 		map<int, int>::iterator itr1;
 		
-		//MST + perfect matching
+		//minTree + perfect matching
 		for(itr1 = oddMatch.begin(); itr1 != oddMatch.end(); itr1++) {
-			MST[itr1->first].push_back(itr1->second);
+			minTree[itr1->first].push_back(itr1->second);
 		}
 	
 	
@@ -118,7 +118,9 @@ int main(int argc, char* argv[]) {
 		cout << "Distance: " << distance << endl;
 
 		oFile.close();
-		
+
+	cout << "Distance: " << distance << endl;
+
 	}
 	return 0;
 }
@@ -263,15 +265,15 @@ list<int> pairwise(map<int, Location> cities, list<int> path){
 
 
 
-//finds a hamiltonian cycle of the modified MST
-list<int> euler_hamilton(map<int, list<int> > MST) {
+//finds a hamiltonian cycle of the modified minTree
+list<int> euler_hamilton(map<int, list<int> > minTree) {
 
 	list<int> path;
 
 	map<int, list<int> >::iterator m_itr;
 	list<int>::iterator p_itr;
 
-	m_itr = MST.begin();
+	m_itr = minTree.begin();
 
 	path.push_back(m_itr->first);
 	p_itr = path.begin();
@@ -279,34 +281,34 @@ list<int> euler_hamilton(map<int, list<int> > MST) {
 	int neighbor;
 	
 	//first build euler tour 
-	//randomly walk through MST. if we hit first element and MST is not empty, find an element in MST and add it
-	while ( !MST.empty()) { //While the map is not empty
+	//randomly walk through minTree. if we hit first element and minTree is not empty, find an element in minTree and add it
+	while ( !minTree.empty()) { //While the map is not empty
 
-		neighbor = MST[ *p_itr ].front();
+		neighbor = minTree[ *p_itr ].front();
 		
-		//remove edge from both MST lists
-		MST[ *p_itr ].remove( neighbor );
-		MST[ neighbor ].remove( *p_itr );
+		//remove edge from both minTree lists
+		minTree[ *p_itr ].remove( neighbor );
+		minTree[ neighbor ].remove( *p_itr );
 
-		if( MST[ *p_itr ].empty() ) 
-			MST.erase( *p_itr );
+		if( minTree[ *p_itr ].empty() ) 
+			minTree.erase( *p_itr );
 		
 		p_itr++;
 		path.insert(p_itr, neighbor);
 		p_itr--;
 		
-		if( MST[ neighbor ].empty() ) {
-			MST.erase( neighbor );
+		if( minTree[ neighbor ].empty() ) {
+			minTree.erase( neighbor );
 		}
 
-		//if neighbor has nowhere to go, remove it from MST
-		if( MST[ *p_itr ].empty() ) {
-			MST.erase( *p_itr );
-			//if we completed a cycle but MST !empty, then create new path loop at remaining MST element
-			if( !MST.empty() ){
+		//if neighbor has nowhere to go, remove it from minTree
+		if( minTree[ *p_itr ].empty() ) {
+			minTree.erase( *p_itr );
+			//if we completed a cycle but minTree !empty, then create new path loop at remaining minTree element
+			if( !minTree.empty() ){
 				//iterate down path until we find a node that still has edges
 				p_itr = path.begin();
-				while( MST.find( *p_itr ) == MST.end() ){
+				while( minTree.find( *p_itr ) == minTree.end() ){
 					p_itr++;
 				}
 			}
@@ -384,15 +386,15 @@ map<int, int> perfectMatching(list<int> oddVectors, map<int, Location> cities) {
 
 
 
-/*		printMST(map<int, list<int>>)
-	prints the MST
+/*		printminTree(map<int, list<int>>)
+	prints the minTree
 */
-void printMST( map<int, list<int> > MST) {
+void printminTree( map<int, list<int> > minTree) {
 		
 		map<int, list<int> >::iterator m_itr;
 		list<int>::iterator l_itr;
 
-		for( m_itr = MST.begin(); m_itr != MST.end(); m_itr++) {
+		for( m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
 			cout << m_itr->first << ": ";
 			l_itr = m_itr->second.begin();
 			while( l_itr !=  m_itr->second.end() ){
@@ -422,92 +424,113 @@ int calcDistance(Location c1, Location c2) {
 
 
 
-/*     			 getMST( map<int, Location> )
-	Returns a MST of the connected graph using Prim's algorithm
-	The MST is an adjacency list of location ids that store the list of child nodes of each city.
+/*     			 getminTree( map<int, Location> )
+	Returns a minTree of the connected graph using Prim's algorithm
+	The minTree is an adjacency list of location ids that store the list of child nodes of each city.
 */
-map<int, list<int> >  getMST( map<int, Location> cities) {	
-		
-		map<int, list<int> > MST;
-		
-		//temp variable
-		Location city;
+map<int, list<int> >  getminTree( map<int, Location> cities) {	
 
-		//duplicate map to create tree (need to remove elements)
-		map<int, Location> temp_cities = cities;
-		map<int, Location>::iterator temp_itr;
+	int numCities = cities.size();
 
-		map<int, list<int> >::iterator mst_itr;
-		
-		list<int>::iterator list_itr;
+	map<int, list<int> > minTree;
+	
+	unordered_set<int> outsideCities;
 
-		//vars to keep track of shortest distance between MST and temp_cities
-		unsigned long int distance;
-		unsigned int edge;
-		int id1, id2;
+	//keep track of vectors
+	vector<int> closestCityOutside( numCities );
+	vector<int> closestCityDist( numCities );
 
-	//add first relationship to MST
-		//get first city and remove from temp cities
-		temp_itr = temp_cities.begin();
-		city = temp_itr->second;
-		id1 = city.id;
-		temp_cities.erase( id1 );
+	int minAdjCity;
+	int tempDistance;
+	
+	//initialize MST with city 0 and its nearest neighbor
+	tempDistance = INT_MAX;
+	for (int i=1; i< numCities; i++){
+		if ( calcDistance( cities[0], cities[i]) < tempDistance ){
+			tempDistance = calcDistance( cities[0], cities[i]);
+			minAdjCity = i;
+		}
+	}
+	minTree[0].push_back(minAdjCity);
+	minTree[minAdjCity].push_back(0);
 
-		distance = ULLONG_MAX;
-		
-		//find city closest to city1 to initialize MST
-		for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++){				
-			edge = calcDistance( city, cities[ temp_itr->second.id ] );
-			if ( edge < distance ) {
-				distance = edge;
-				id2 = temp_itr->second.id;
+
+	//keep track of cities outside MST
+	for(int i=1; i < numCities; i++){
+		outsideCities.insert(i);
+	}
+	outsideCities.erase(minAdjCity);
+
+
+	//next calculate closest city outside of tree to each city inside tree 
+	for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+		closestCityDist[ m_itr->first ] = -1;
+		for ( int j=1; j < numCities; j++ ){
+			if ( j != minAdjCity ){
+				tempDistance = calcDistance( cities[ m_itr->first ], cities[j] );
+				if (closestCityDist[ m_itr->first ] < 0 || tempDistance < closestCityDist[ m_itr->first ] ){
+					closestCityDist[ m_itr->first ] = tempDistance;
+					closestCityOutside[ m_itr->first ] = j;
+				}
 			}
 		}	
-		MST[id1].push_back(id2);
-		MST[id2].push_back(id1);
+	}	
 
-		temp_cities.erase(id2);
+	int insideCity, outsideCity;
+cout << "n = " << numCities << endl;
+	//BUILD MST for rest of the cities
+	for(int n=0; n<numCities - 2; n++) {
+cout << n << " " ;
+		//find shortest distance between tree and outside tree
+		tempDistance = INT_MAX;
+		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+			if ( closestCityDist[ m_itr->first ] < tempDistance ) {
+				insideCity = m_itr->first;
+				tempDistance = closestCityDist[insideCity];
+				outsideCity = closestCityOutside[insideCity];
+			}
+		}
 
-		//add rest of cities
-		for( int i=0; i < (int)(cities.size()) - 2; i++){
+
+		//add outsideCity to MST
+		minTree[ insideCity ].push_back( outsideCity ); 
+		minTree[ outsideCity ].push_back( insideCity );
+
+
+		outsideCities.erase(outsideCity);
+
+		
+		//find the closest outside city to newly added city
+		closestCityDist[outsideCity] = INT_MAX;
+		for( unordered_set<int>::iterator o_itr = outsideCities.begin(); o_itr != outsideCities.end(); o_itr++){
+			tempDistance = calcDistance( cities[outsideCity], cities[ *o_itr ] );
+			if ( tempDistance < closestCityDist[outsideCity] ) {
+				closestCityOutside[outsideCity] = *o_itr;
+				closestCityDist[outsideCity] = tempDistance;
+			}
+		}
+		
+		//update any other cities that were closest to outside city
+		for (map<int, list<int> >::iterator m_itr = minTree.begin(); m_itr != minTree.end(); m_itr++) {
+
+			if ( closestCityOutside[ m_itr->first ] == outsideCity ) {
 			
-			distance = ULLONG_MAX;
-
-			//to get the next shortest distance between MST and temp_cities we iterate through the MST using mst_tr and list_itr
-			for( mst_itr = MST.begin();  mst_itr != MST.end();  mst_itr++) {	
-	
-				for( list_itr = mst_itr->second.begin();  list_itr != mst_itr->second.end();  list_itr++) {
+				//then we need to find a new city
+				closestCityDist[ m_itr->first ] = INT_MAX;
+				
+				for( unordered_set<int>::iterator o_itr = outsideCities.begin(); o_itr != outsideCities.end(); o_itr++) {
 					
-					city = cities[ *list_itr ];
-
-					//check against each city in temp_cities
-					for( temp_itr = temp_cities.begin(); temp_itr != temp_cities.end(); temp_itr++) {
-	
-						edge = calcDistance( city, cities[ temp_itr->second.id ] );
-						if ( edge < distance ) {
-							distance = edge;
-							id1 = *list_itr;
-							id2 = temp_itr->second.id;
-						}
+					tempDistance = calcDistance( cities[ m_itr->first ], cities[*o_itr]);
+					
+					if ( tempDistance < closestCityDist[ m_itr->first ] ) {
+						closestCityOutside[ m_itr->first ] = *o_itr;
+						closestCityDist[ m_itr->first ] = tempDistance;
 					}
 				}
 			}
-			MST[id1].push_back(id2);
-			MST[id2].push_back(id1);
-			
-			temp_cities.erase(id2);
 		}
-
-		//test MST size and temp size
-		int mstsize = 0;
-		for( mst_itr = MST.begin(); mst_itr != MST.end(); mst_itr++) {
-			mstsize += mst_itr->second.size();
-		}
-		
-//		cout << "MST vectors: " << MST.size() << "  MST edges: " << mstsize << endl;
-//		cout << "temp_cities: " << temp_cities.size() << endl;
-
-		return MST;
+	}
+	return minTree;
 }
 
 
@@ -516,13 +539,13 @@ map<int, list<int> >  getMST( map<int, Location> cities) {
 /*			getOddVectors( map< int, list<int> > )
 	returns a list of integers representing the vectors with odd number of edges
 */
-list<int> getOddVectors( map<int,list<int> > MST ){
+list<int> getOddVectors( map<int,list<int> > minTree ){
 
 	list<int> oddList;
 
 	map<int,list<int> >::iterator itr;
 
-	for( itr = MST.begin(); itr != MST.end(); itr++) {
+	for( itr = minTree.begin(); itr != minTree.end(); itr++) {
 		if ( ( itr->second.size() % 2) == 1 ) {
 			oddList.push_back(itr->first);
 		}
