@@ -32,7 +32,7 @@ void printminTree( map<int, list<int> > minTree );
 map<int, int> perfectMatching(list<int>, map<int, Location>);
 list<int> euler_hamilton(map<int, list<int> > minTree);
 
-list<int> pairwise(map<int, Location> cities, list<int> path);
+list<int> pairwise(map<int, Location> cities, list<int> path, int reduction);
 
 
 
@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
 
 		iFile.close();
 
+		int numCities = cities.size();
+
 		//get min spanning tree
 		map<int, list<int> > minTree;
 		minTree = getminTree( cities );
@@ -78,10 +80,18 @@ int main(int argc, char* argv[]) {
 		}
 	
 	
+		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+		
+		//pairwise reductions
+		if ( numCities < 500 ) {
+			cout << "2-opt" << endl;
+			fpath = pairwise(cities, fpath, 2);
+		}
+		else if ( numCities < 5000 ) {
+			cout << "1-opt" << endl;
+			fpath = pairwise(cities, fpath, 2);
+		}
 
-		// list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-		list<int> fpath = pairwise(cities, newpath);
 
 
 		int origin;
@@ -136,12 +146,12 @@ int main(int argc, char* argv[]) {
 */
 
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
-list<int> pairwise(map<int, Location> cities, list<int> path){
+list<int> pairwise(map<int, Location> cities, list<int> path, int reduction){
 	list<int> newpath;
 	int size = path.size();
 	int improve = 0;
 
-	while(improve < 2){
+	while(improve < reduction){
 
 		int origin;
 		int distance = 0;
