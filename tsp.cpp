@@ -79,9 +79,9 @@ int main(int argc, char* argv[]) {
 	
 	
 
-//		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
-		list<int> fpath = pairwise(cities, newpath);
+		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+//		list<int> newpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
+//		list<int> fpath = pairwise(cities, newpath);
 
 
 		int origin;
@@ -118,8 +118,6 @@ int main(int argc, char* argv[]) {
 		cout << "Distance: " << distance << endl;
 
 		oFile.close();
-
-	cout << "Distance: " << distance << endl;
 
 	}
 	return 0;
@@ -266,15 +264,16 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 	list<int> path;
 
 	map<int, list<int> >::iterator m_itr;
-	list<int>::iterator p_itr;
 
 	m_itr = minTree.begin();
 
 	path.push_back(m_itr->first);
+	
+	list<int>::iterator p_itr;
 	p_itr = path.begin();
 
 	int neighbor;
-	
+
 	//first build euler tour 
 	//randomly walk through minTree. if we hit first element and minTree is not empty, find an element in minTree and add it
 	while ( !minTree.empty()) { //While the map is not empty
@@ -285,16 +284,23 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 		minTree[ *p_itr ].remove( neighbor );
 		minTree[ neighbor ].remove( *p_itr );
 
-		if( minTree[ *p_itr ].empty() ) 
+		if( minTree[ *p_itr ].empty() ) {
 			minTree.erase( *p_itr );
-		
-		p_itr++;
-		path.insert(p_itr, neighbor);
-		p_itr--;
-		
+		}
 		if( minTree[ neighbor ].empty() ) {
 			minTree.erase( neighbor );
 		}
+		
+		if( p_itr == path.end() ) {
+			path.insert(p_itr, neighbor);
+			p_itr--;
+		}
+		else {
+			p_itr++;
+			path.insert(p_itr, neighbor);
+			p_itr--;
+		}
+
 
 		//if neighbor has nowhere to go, remove it from minTree
 		if( minTree[ *p_itr ].empty() ) {
@@ -302,9 +308,10 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 			//if we completed a cycle but minTree !empty, then create new path loop at remaining minTree element
 			if( !minTree.empty() ){
 				//iterate down path until we find a node that still has edges
-				p_itr = path.begin();
-				while( minTree.find( *p_itr ) == minTree.end() ){
-					p_itr++;
+				for (p_itr = path.begin(); p_itr != path.end(); p_itr++){
+					if ( minTree.find( *p_itr ) != minTree.end() ){
+						break;
+					}
 				}
 			}
 		}
@@ -315,7 +322,22 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 	//to keep track of used nodes
 	unordered_set<int> traveled;
 
+	map<int, int> duplicates;
+
 	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
+		duplicates[*p_itr]++;
+	}
+
+	map<int,int>::iterator d_itr;
+	vector<int> dupCities;
+
+	for(d_itr = duplicates.begin(); d_itr != duplicates.end(); d_itr++){
+		if( d_itr->second > 1 ){
+			dupCities.push_back( d_itr->first);
+		}
+	}
+
+/*	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
 		if( traveled.find( *p_itr ) == traveled.end() ){
 			traveled.insert(*p_itr);
 		}
@@ -323,7 +345,11 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 			p_itr = path.erase(p_itr);
 		}
 	}
-
+*/
+cout << endl;
+for (list<int>::iterator x = path.begin(); x != path.end(); x++)
+	cout << *x << " ";
+	
 	return path;
 }
 
@@ -526,6 +552,7 @@ cout << n << " ";
 		}
 	}
 	cout << "MST complete!" << endl;
+	cout << "MST size = " << minTree.size() << endl;
 	return minTree;
 }
 
