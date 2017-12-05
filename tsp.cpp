@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 		iFile.close();
 
-		int numCities = cities.size();
+		// int numCities = cities.size();
 
 		//get min spanning tree
 		map<int, list<int> > minTree;
@@ -82,15 +82,21 @@ int main(int argc, char* argv[]) {
 	
 		list<int> fpath = euler_hamilton(minTree);		//Hamiltonian Cycle path
 		
-		//pairwise reductions
-		if ( numCities < 500 ) {
-			cout << "2-opt" << endl;
-			fpath = pairwise(cities, fpath, 2);
-		}
-		else if ( numCities < 5000 ) {
-			cout << "1-opt" << endl;
-			fpath = pairwise(cities, fpath, 2);
-		}
+		/*
+			This is commented out in order to come up with a solution in 
+			under three minutes. We use pairwise exchange to incrementally
+			make improvements to our path which is time expensive. 
+		*/
+
+		// pairwise reductions
+		// if ( numCities < 500 ) {
+		// 	cout << "2-opt" << endl;
+		// 	fpath = pairwise(cities, fpath, 2);
+		// }
+		// else if ( numCities <= 5000 ) {
+		// 	cout << "1-opt" << endl;
+		// 	fpath = pairwise(cities, fpath, 1);
+		// }
 
 
 
@@ -133,19 +139,12 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-/*
-		while(itr != itr_end){
-			origin = *itr;
-			itr++;
-			distance += calcDistance( cities[ origin ], cities[ *itr ] );
-		}
-
-		//connect the last city back to the first
-		itr = fpath.begin();
-		distance += calcDistance(cities[*itr], cities[*itr_end]);
-*/
-
 //----------------------------------------- FUNCTIONS ----------------------------------------------------
+
+/*
+	pairwise incrementally optimizes the cycles by swapping pairs of edges and determining
+	if the swap was beneficial. This function will not be used during the competition.
+*/
 list<int> pairwise(map<int, Location> cities, list<int> path, int reduction){
 	list<int> newpath;
 	int size = path.size();
@@ -158,20 +157,6 @@ list<int> pairwise(map<int, Location> cities, list<int> path, int reduction){
 		list<int>::iterator itr = path.begin();
 		list<int>::iterator itr_end = path.end();
 		--itr_end;
-
-/*		string filename = argv[1];
-		filename += ".tour";
-		
-		ofstream oFile;
-
-		oFile.open(filename);
-
-		oFile << distance << endl;
-
-		for(itr = fpath.begin(); itr != fpath.end(); itr++){
-			oFile << *itr << endl;
-		}
-*/
 
 		while(itr != itr_end){
 			origin = *itr;
@@ -221,11 +206,6 @@ list<int> pairwise(map<int, Location> cities, list<int> path, int reduction){
 			        l_itr++;
 			    }
 
-			    //cout << "newpath" << endl;
-			    //for(temp_itr=newpath.begin(); temp_itr != newpath.end(); temp_itr++){
-			    	//cout << *temp_itr << endl;
-			    //}
-
 			    int origin2;
 				int distance2 = 0;
 				list<int>::iterator itr2 = newpath.begin();
@@ -263,10 +243,6 @@ list<int> pairwise(map<int, Location> cities, list<int> path, int reduction){
 
 	return path;
 }
-
-
-
-
 
 //finds a hamiltonian cycle of the modified minTree
 list<int> euler_hamilton(map<int, list<int> > minTree) {
@@ -331,38 +307,6 @@ list<int> euler_hamilton(map<int, list<int> > minTree) {
 
 	//to keep track of used nodes
 
-/*	map<int, int> duplicates;
-
-	for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
-		duplicates[*p_itr]++;
-	}
-
-	map<int,int>::iterator d_itr;
-	vector<int> dupCities;
-
-	for(d_itr = duplicates.begin(); d_itr != duplicates.end(); d_itr++){
-		if( d_itr->second > 1 ){
-			dupCities.push_back( d_itr->first);
-		}
-	}
-
-	int num = dupCities.back();
-	dupCities.pop_back();
-	do {
-		for(p_itr = path.begin(); p_itr != path.end(); p_itr++ ){
-			if (*p_itr == num) {
-				path.erase(p_itr++);
-				if (!dupCities.empty()) {
-					num = dupCities.back();
-					dupCities.pop_back();
-				} else {
-					break;
-				}
-			}
-		}
-	} while (!dupCities.empty());
-*/
-
 	unordered_set<int> traveled;
 	list <int> finalpath;
 
@@ -411,9 +355,7 @@ map<int, int> perfectMatching(list<int> oddVectors, map<int, Location> cities) {
 
 		for (; cityB_Itr != oddVectors.end(); ++cityB_Itr) {
 			currDistance = calcDistance(cities[*cityA_Itr], cities[*cityB_Itr]);
-
-			// cout << *cityA_Itr << " to " << *cityB_Itr << ": " << currDistance << endl;
-
+			
 			if (currDistance < dl.distance) {
 				dl.distance = currDistance;
 				dl.location = *cityB_Itr;
